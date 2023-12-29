@@ -1,9 +1,25 @@
-import React from 'react'
-import {useForm} from 'react-hook-form'
-import {Link} from 'react-router-dom'
-import MainLayout from '../../components/MainLayout'
+import React from 'react';
+import {useForm} from 'react-hook-form';
+import {Link} from 'react-router-dom';
+import MainLayout from '../../components/MainLayout';
+import {useMutation} from '@tanstack/react-query';
+import { signup } from '../../services/index/users';
+import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
+
+    const {mutate, isLoading} = useMutation({
+        mutationFn:({name, email, password}) => {
+            return signup({name, email, password});
+        },
+        onSuccess: (data) =>{       //AFTER GETTING DATA FROM BACKEND,THIS FUNCTION RUNS AUTOMATICALLY
+          console.log(data);
+        },
+        onError: (error) => {
+          toast.error(error.message)
+          console.log(error);
+        }
+    });
 
     const {register, handleSubmit, formState:{errors, isValid},watch} = useForm({
         defaultValues:{
@@ -15,8 +31,9 @@ export default function RegisterPage() {
         mode:"onChange"
     })
     const submitHandler = (data) =>{
-        console.log(data);
-    }
+        const {name, email, password} = data;
+        mutate({name, email, password});
+    };
     const password=watch('password');
 
   return (
@@ -134,7 +151,7 @@ export default function RegisterPage() {
               )}
             </div>
             <Link to="/forget-password" className='text-sm font-semibold text-primary'>Forget Password?</Link>
-            <button type='submit' disabled={!isValid} className='bg-primary text-white font-bold text-lg py-4 px-8 w-full rounded-lg my-6 disabled:opacity-70 disabled:cursor-not-allowed'>Register</button>
+            <button type='submit' disabled={!isValid || isLoading} className='bg-primary text-white font-bold text-lg py-4 px-8 w-full rounded-lg my-6 disabled:opacity-70 disabled:cursor-not-allowed'>Register</button>
             <p className='text-sm font-semibold text-[#5a7184]'>You have an account? <Link to='/login' className='text-primary'>login now</Link></p>
           </form>
         </div>

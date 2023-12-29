@@ -3,6 +3,7 @@ import './App.css';
 import Home from './pages/home/Home';
 import ArticleDetailPage from './pages/articleDetail/ArticleDetailPage';
 import RegisterPage from './pages/register/RegisterPage';
+import {Toaster} from 'react-hot-toast';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/blog/:id" element={<ArticleDetailPage/>}/>
         <Route index path="/register" element={<RegisterPage/>}/>
       </Routes>
+      <Toaster/>
       </div>
   );
 }
