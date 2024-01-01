@@ -162,7 +162,6 @@ export default function RegisterPage() {
                 <p className='text-red-500 text-xs mt-1'>{errors.confirmPassword?.message}</p>
               )}
             </div>
-            <Link to="/forget-password" className='text-sm font-semibold text-primary'>Forget Password?</Link>
             <button type='submit' disabled={!isValid || isLoading} className='bg-primary text-white font-bold text-lg py-4 px-8 w-full rounded-lg my-6 disabled:opacity-70 disabled:cursor-not-allowed'>Register</button>
             <p className='text-sm font-semibold text-[#5a7184]'>You have an account? <Link to='/login' className='text-primary'>login now</Link></p>
           </form>
