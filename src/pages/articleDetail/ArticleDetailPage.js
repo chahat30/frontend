@@ -1,17 +1,20 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import MainLayout from '../../components/MainLayout'
 import BreadCrumbs from '../../components/BreadCrumbs'
-import {images} from '../../constants';
-import {Link} from 'react-router-dom';
+import {images, stables} from '../../constants';
+import {Link, useParams} from 'react-router-dom';
 import SuggestedPosts from './container/SuggestedPosts';
 import CommentsContainer from '../../components/comments/CommentsContainer';
 import SocialShareButtons from '../../components/SocialShareButtons';
-
-const breadCrumbsData=[
-    {name:"Home",link:"/"},
-    {name:"Blog",link:"/blog"},
-    {name:"Article Title",link:"/blog/1"},
-]
+import { getSinglePost } from '../../services/index/posts';
+import { useQuery} from '@tanstack/react-query';
+import { generateHTML } from '@tiptap/html';
+import Bold from '@tiptap/extension-bold';
+import Document from '@tiptap/extension-document';
+import Paragraph from '@tiptap/extension-paragraph';
+import Text from '@tiptap/extension-text';
+import Italic from '@tiptap/extension-italic';
+import parse from 'html-react-parser';
 
 const postsData=[
     {
@@ -51,6 +54,35 @@ const tagsData=[
 ]
 
 export default function ArticleDetailPage() {
+
+  const { slug } = useParams();
+  const [breadCrumbsData, setbreadCrumbsData] = useState([]);
+  const [body, setBody] = useState(null);
+
+  const { data, isLoading, isError } = useQuery({
+    queryFn: () => getSinglePost({ slug }),
+    queryKey: ["blog", slug],
+  });
+
+  useEffect(()=>{
+    if(data){
+      setbreadCrumbsData([
+        { name: "Home", link: "/" },
+        { name: "Blog", link: "/blog" },
+        { name: "Article title", link: `/blog/${data.slug}` },
+      ]);
+      setBody(
+        parse(generateHTML(data?.body,[
+          Bold,
+          Italic,
+          Text,
+          Paragraph,
+          Document
+        ]))
+        );
+    }
+  },[data]);
+
   return (
     <MainLayout>
       <section className="container mx-auto max-w-5xl flex flex-col px-5 py-5 lg:flex-row lg:gap-x-5 lg:items-start">
@@ -58,28 +90,25 @@ export default function ArticleDetailPage() {
           <BreadCrumbs data={breadCrumbsData} />
           <img
             className="rounded-xl w-full"
-            src={images.postImage}
-            alt="laptop"
+            src={data?.photo ? stables.UPLOAD_FOLDER_BASE_URL + data?.photo : images.samplePostImage }
+            alt={data?.title}
           />
-          <Link
+
+          <div className='mt-4 flex gap-2'>
+          {data?.categories.map((category) => (
+            <Link
             className="text-primary text-sm font-roboto inline-block mt-4 md:text-base"
-            to="/blog?category=selectedCategory"
-          >
-            EDUCATION
-          </Link>
-          <h1 className="text-xl font-medium font-roboto mt4 text-dark-hard md:text-[26px]">
-            Help Children Get Better Education
+            to={`/blog?category=${category.name}`}
+            >
+            {category.name}
+            </Link>
+          ))}
+          </div>
+          <h1 className="text-xl font-medium font-roboto mt-4 text-dark-hard md:text-[26px]">
+            {data?.title}
           </h1>
-          <div className="mt-4 text-dark-soft">
-            <p className="leading-7">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam
-              pretium consequat est, et vulputate ligula elementum vel. Nam
-              congue felis id maximus aliquam. Etiam interdum odio et fringilla
-              ornare. Mauris vehicula nisi purus, a ullamcorper nisi eleifend
-              eget. Donec nec nunc a velit vestibulum ultricies in ac risus.
-              Nunc ut vehicula nunc. Maecenas tincidunt accumsan tempus. Quisque
-              ut hendrerit metus.
-            </p>
+          <div className="mt-4 prose prose-sm sm:prose-base">
+            {body}
           </div>
           <CommentsContainer className="mt-10" logginedUserId="a" />
         </article>
