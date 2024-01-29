@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-export default function CommentForm({btnLabel,formSubmitHandler,formCancelHandler=null,initialText=""}) {
+export default function CommentForm({btnLabel,formSubmitHandler,formCancelHandler=null,initialText="", loading = false}) {
 
     const[text,setText]=useState(initialText);
 
@@ -28,7 +28,7 @@ export default function CommentForm({btnLabel,formSubmitHandler,formCancelHandle
           {formCancelHandler && (
             <button onClick={formCancelHandler} className='px-6 py-2.5 rounded-lg border border-red-500 text-red-500'>Cancel</button>
           )}
-          <button type="submit" className='px-6 py-2.5 rounded-lg bg-primary text-white font-semibold'>{btnLabel}</button>
+          <button disabled={loading} type="submit" className='px-6 py-2.5 rounded-lg bg-primary text-white font-semibold disabled:opacity-70 disabled:cursor-not-allowed'>{btnLabel}</button>
         </div>
       </div>
     </form>
