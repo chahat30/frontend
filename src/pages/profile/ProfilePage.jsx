@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {useForm} from 'react-hook-form';
 import {useNavigate} from 'react-router-dom';
 import MainLayout from '../../components/MainLayout';
@@ -15,12 +15,12 @@ export default function ProfilePage() {
   const queryClient= useQueryClient();
   const userState = useSelector(state => state.user);
 
-    const {data: profileData, isLoading: profileIsLoading, error: profileError} = useQuery({
+    const {data: profileData, isLoading: profileIsLoading} = useQuery({
         queryFn : () => {
             return getUserProfile({ token: userState.userInfo.token});
         },
         queryKey: ['profile']   //if key is same in another page ,it uses cached data in our browser
-    })
+    });
 
     const {mutate, isLoading: updateProfileIsLoading } = useMutation({
       mutationFn:({name, email, password}) => {
@@ -54,12 +54,14 @@ export default function ProfilePage() {
             email:"",
             password:"",
         },
-        values:{
+        values: useMemo(() => {
+          return {
             name: profileIsLoading? "" : profileData.name,
             email: profileIsLoading? "" : profileData.email,
-        },
+        }
+        },[profileData?.email, profileData?.name, profileIsLoading]) ,
         mode:"onChange"
-    })
+    });
     const submitHandler = (data) =>{
         const {name, email, password} = data;
         mutate({name, email, password});

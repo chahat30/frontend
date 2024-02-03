@@ -24,7 +24,7 @@ export default function Articles() {
           [...Array(3)].map((item,index)=>(
             <ArticleCardSkeleton key={index} className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"/>
           ))
-        ): isError? <ErrorMessage message="Couldn't fetch the posts"/> : data.map((post) => (
+        ): isError? <ErrorMessage message="Couldn't fetch the posts"/> : data?.data.map((post) => (
           <ArticleCard key={post._id} post={post} className="w-full md:w-[calc(50%-20px)] lg:w-[calc(33.33%-21px)]"/>
         ))}
       </div>
