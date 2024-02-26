@@ -1,72 +1,36 @@
-import { useQuery } from "@tanstack/react-query";
 import { images, stables } from "../../../constants";
 import { deletePost, getAllPosts } from "../../../services/index/posts";
 import { useEffect, useState } from "react";
 import Pagination from "../../../components/Pagination";
-import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {useMutation, useQueryClient, useQuery} from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import {Link} from 'react-router-dom';
 import { useSelector} from 'react-redux';
-
-let isFirstRun = true;
+import { useDataTable } from "../../../hooks/useDataTable";
 
 const ManagePosts = () => {
-  const queryClient = useQueryClient();
-  const userState = useSelector(state => state.user);
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const {
+  
+  const {userState,
+    currentPage,
+    setCurrentPage,
+    searchKeyword,
     data: postsData,
     isLoading,
     isFetching,
-    refetch,
-  } = useQuery({
-    queryFn: () => getAllPosts(searchKeyword, currentPage),
-    queryKey: ["posts"],
-  });
-
-  const {mutate: mutateDeletePost, isLoading: isLoadingDeletePost} = useMutation({
-    mutationFn:({slug, token}) => {
+    isLoadingDeleteData,
+    queryClient,
+    searchKeywordHandler,
+    submitSearchKeywordHandler,
+    deleteDataHandler} = useDataTable({
+      dataQueryFn: ()=> getAllPosts(searchKeyword,currentPage),
+      dataQueryKey:"posts",
+      deleteDataMessage:"Post is deleted",
+      mutateDeleteFn: ({slug, token}) =>{
         return deletePost({
-          slug,
-          token
-        });
-    },
-    onSuccess: (data) =>{       //AFTER GETTING DATA FROM BACKEND,THIS FUNCTION RUNS AUTOMATICALLY
-      
-      queryClient.invalidateQueries(['posts']);
-      toast.success("Post is deleted");
-      
-    },
-    onError: (error) => {
-      toast.error(error.message);
-      console.log(error);
-    }
-});
-
-  useEffect(() => {
-    if (isFirstRun) {
-      isFirstRun = false;
-      return;
-    }
-    refetch();
-  }, [refetch, currentPage]);
-
-  const searchKeywordHandler = (e) => {
-    const { value } = e.target;
-    setSearchKeyword(value);
-  };
-
-  const submitSearchKeywordHandler = (e) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    refetch();
-  };
-
-  const deletePostHandler = ({slug, token}) => {
-    mutateDeletePost({slug,token});
-  }
+          slug,token
+        })
+      }
+    });
 
   return (
     <div>
@@ -177,7 +141,9 @@ const ManagePosts = () => {
                         <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
                           <p className="text-gray-900 whitespace-no-wrap">
                             {post.categories.length > 0
-                              ? post.categories[0]
+                              ? post.categories.slice(0,3).map((category,index)=>(
+                                `${category?.title}${post.categories.slice(0,3).length === index+1 ? "":", "}`
+                                ))
                               : "Uncategorized"}
                           </p>
                         </td>
@@ -207,8 +173,8 @@ const ManagePosts = () => {
                         </td>
                         <td className="px-5 py-5 text-sm bg-white border-b border-gray-200 space-x-5">
                           <button onClick={() => {
-                            deletePostHandler({slug: post?.slug, token:userState.userInfo.token})
-                          }} disabled={isLoadingDeletePost} type="button" className="text-red-600 hover:text-red-900 disabled:opacity-70 disabled:cursor-not-allowed">Delete</button>
+                            deleteDataHandler({slug: post?.slug, token:userState.userInfo.token})
+                          }} disabled={isLoadingDeleteData} type="button" className="text-red-600 hover:text-red-900 disabled:opacity-70 disabled:cursor-not-allowed">Delete</button>
                           <Link
                             to={`/admin/posts/manage/edit/${post?.slug}`}
                             className="text-green-600 hover:text-green-900"
